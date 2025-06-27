@@ -55,6 +55,10 @@ public class FileLineAnalyzer {
 
         System.out.printf("Средний объем трафика за час: %.2f байт%n", statistics.getTrafficRate());
 
+        System.out.printf("Среднее количество посещений сайта за час: %.2f%n", statistics.getAverageVisitsPerHour());
+        System.out.printf("Среднее количество ошибочных запросов в час: %.2f%n", statistics.getAverageErrorRequestsPerHour());
+        System.out.printf("Средняя посещаемость одним пользователем: %.2f%n", statistics.getAverageVisitsPerUser());
+
         System.out.println("\nСуществующие страницы, с кодом ответа 200:");
         int counter = 0;
         for (String page : statistics.getExistingPages()) {
