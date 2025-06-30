@@ -6,7 +6,6 @@ import java.util.Locale;
 class LogEntry {
     private final String ipAddr;
     private final LocalDateTime time;
-    private final HttpMethod method;
     private final String path;
     private final int responseCode;
     private final int responseSize;
@@ -18,7 +17,6 @@ class LogEntry {
             String[] parts = splitLine(line);
             this.ipAddr = parts[0];
             this.time = parseDateTime(parts[1]);
-            this.method = parseHttpMethod(parts[2]);
             this.path = parts[3];
             this.responseCode = Integer.parseInt(parts[4]);
             this.responseSize = parts[5].equals("-") ? 0 : Integer.parseInt(parts[5]);
@@ -30,9 +28,7 @@ class LogEntry {
         }
     }
 
-    // Парсер строки лога для основных nginx/apache combined лога
-    private String[] splitLine(String line) throws Exception {
-        // Формат: ip - - [date] "METHOD /path proto" code size "referer" "UA"
+    private String[] splitLine(String line) {
         int firstSpace = line.indexOf(' ');
         String ip = line.substring(0, firstSpace);
 
@@ -70,18 +66,9 @@ class LogEntry {
     }
 
     private LocalDateTime parseDateTime(String dateStr) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.US);
+        DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.US);
         ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.US));
         return zdt.toLocalDateTime();
-    }
-
-    private HttpMethod parseHttpMethod(String methodStr) {
-        try {
-            return HttpMethod.valueOf(methodStr);
-        } catch (IllegalArgumentException e) {
-            System.err.println("Неизвестный HTTP метод: " + methodStr);
-            return null;
-        }
     }
 
     public LocalDateTime getTime() { return time; }
@@ -90,4 +77,7 @@ class LogEntry {
     public int getResponseSize() { return responseSize; }
     public UserAgent getUserAgent() { return userAgent; }
     public String getIpAddr() { return ipAddr; }
+    public String getReferer() {
+        return referer;
+    }
 }

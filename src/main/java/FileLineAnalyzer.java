@@ -58,6 +58,13 @@ public class FileLineAnalyzer {
         System.out.printf("Среднее количество посещений сайта за час: %.2f%n", statistics.getAverageVisitsPerHour());
         System.out.printf("Среднее количество ошибочных запросов в час: %.2f%n", statistics.getAverageErrorRequestsPerHour());
         System.out.printf("Средняя посещаемость одним пользователем: %.2f%n", statistics.getAverageVisitsPerUser());
+        System.out.printf("Максимальная посещаемость одним пользователем:  %d%n", statistics.getMaxVisitsBySingleUser());
+        System.out.printf("Пиковая посещаемость сайта в секунду (без ботов): %d%n", statistics.getPeakVisitsPerSecond());
+
+        System.out.println("Сайты, с которых есть ссылки на текущий сайт:");
+        for (String domain : statistics.getRefererDomains()) {
+            System.out.println(domain);
+        }
 
         System.out.println("\nСуществующие страницы, с кодом ответа 200:");
         int counter = 0;

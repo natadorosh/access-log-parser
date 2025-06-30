@@ -27,14 +27,13 @@ class UserAgent {
 
     private String parseBrowser(String ua) {
         ua = ua.toLowerCase();
-        if (ua.contains("edge") || ua.contains("edg/")) { // Edge новые user-agent
+        if (ua.contains("edge") || ua.contains("edg/")) {
             return "Edge";
         } else if (ua.contains("firefox")) {
             return "Firefox";
         } else if (ua.contains("opera") || ua.contains("opr/")) {
             return "Opera";
         } else if (ua.contains("chrome")) {
-            // Не путать с Edge, который иногда содержит Chrome и Edg
             if (ua.contains("edg/")) {
                 return "Edge";
             }

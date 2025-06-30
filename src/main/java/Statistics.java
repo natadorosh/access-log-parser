@@ -13,6 +13,9 @@ class Statistics {
     private final HashSet<String> nonExistingPages = new HashSet<>();
     private final HashMap<String, Integer> osFrequency = new HashMap<>();
     private final HashMap<String, Integer> browserFrequency = new HashMap<>();
+    private final HashMap<Long, Integer> visitsPerSecond = new HashMap<>();
+    private final HashSet<String> refererDomains = new HashSet<>();
+    private final HashMap<String, Integer> userVisits = new HashMap<>();
 
     private int botVisits;
     private int errorRequests;
@@ -36,21 +39,22 @@ class Statistics {
         }
 
         String ip = entry.getIpAddr();
-
-        // Проверяем, является ли обращение от бота
         boolean isBot = entry.getUserAgent().getUserAgentString().toLowerCase().contains("bot");
 
         if (!isBot) {
-            uniqueUserIPs.add(ip); // Добавляем уникальный IP
+            uniqueUserIPs.add(ip);
+            long epochSecond = time.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
+            visitsPerSecond.put(epochSecond, visitsPerSecond.getOrDefault(epochSecond, 0) + 1);
+            userVisits.put(ip, userVisits.getOrDefault(ip, 0) + 1);
         } else {
-            botVisits++; // Увеличиваем количество обращений от ботов
+            botVisits++;
         }
 
         if (entry.getResponseCode() == 200) {
             existingPages.add(entry.getPath());
         } else if (entry.getResponseCode() / 100 == 4 || entry.getResponseCode() / 100 == 5) {
             nonExistingPages.add(entry.getPath());
-            errorRequests++; // Увеличиваем количество ошибочных запросов
+            errorRequests++;
         }
 
         String os = entry.getUserAgent().getOs();
@@ -58,6 +62,38 @@ class Statistics {
 
         String browser = entry.getUserAgent().getBrowser();
         browserFrequency.put(browser, browserFrequency.getOrDefault(browser, 0) + 1);
+
+        String referer = entry.getReferer();
+        if (referer != null && !referer.trim().isEmpty() &&
+                (referer.startsWith("http://") || referer.startsWith("https://"))) {
+            String domain = extractDomainFromUrl(referer);
+            if (domain != null && !domain.isEmpty()) {
+                refererDomains.add(domain);
+            }
+        }
+    }
+
+    private String extractDomainFromUrl(String url) {
+        try {
+            java.net.URL u = new java.net.URL(url);
+            return u.getHost();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public HashSet<String> getRefererDomains() {
+        return refererDomains;
+    }
+
+    public int getPeakVisitsPerSecond() {
+        int max = 0;
+        for (int count : visitsPerSecond.values()) {
+            if (count > max) {
+                max = count;
+            }
+        }
+        return max;
     }
 
     public double getTrafficRate() {
@@ -81,14 +117,14 @@ class Statistics {
             return 0.0;
         }
         double hours = Duration.between(minTime, maxTime).toMillis() / (1000.0 * 3600);
-        return hours > 0 ? errorRequests / hours : 0.0; // Среднее за период
+        return hours > 0 ? errorRequests / hours : 0.0;
     }
 
     public double getAverageVisitsPerUser() {
         if (uniqueUserIPs.isEmpty()) {
             return 0.0;
         }
-        return (totalTraffic - botVisits) / (double) uniqueUserIPs.size(); // Не учитываем ботов
+        return (totalTraffic - botVisits) / (double) uniqueUserIPs.size();
     }
 
     public HashSet<String> getExistingPages() {
@@ -119,5 +155,14 @@ class Statistics {
             }
         }
         return result;
+    }
+    public int getMaxVisitsBySingleUser() {
+        int max = 0;
+        for (int visits : userVisits.values()) {
+            if (visits > max) {
+                max = visits;
+            }
+        }
+        return max;
     }
 }
